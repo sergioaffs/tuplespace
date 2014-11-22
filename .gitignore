@@ -1,0 +1,39 @@
+*target*
+*.jar
+*.war
+*.ear
+*.class
+
+# eclipse specific git ignore
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+studentpolicy
+summary.txt
+timeout.c
+timeout2
+passive/*
+passive-run/*
+yielding/*
+output.txt
+/bin/
+logs/*
+logReactor semantics test.dmp
