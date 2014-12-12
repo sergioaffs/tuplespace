@@ -1,5 +1,6 @@
 package chat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -7,7 +8,7 @@ import javax.print.DocFlavor.READER;
 
 import tuplespaces.TupleSpace;
 
-//STATE: [“STATE”, int:rows, String:[channel1:number, channel2:number, …, channeln:number,]>]
+//STATE: [“STATE”, String:[channel1:number, channel2:number, …, channeln:number,]>]
 //CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position]
 //WRITE: [string channel_name, "WRITE", int nextwrite]
 //CONN: [string channel_name, "CONN", int numbers]
@@ -34,7 +35,7 @@ public class ChatServer {
 		tSpace = t;
 		
 		////  maybe not necessary
-		String[] tupleStrings = t.get(STATUS,null,null);
+		String[] tupleStrings = t.get(STATUS,null);
 		channelMapFromString(tupleStrings[2]);
 		////
 		
@@ -59,8 +60,14 @@ public class ChatServer {
 
 	public String[] getChannels() {
 		// TODO: Implement ChatServer.getChannels();
-		String[] tupleStrings = tSpace.get(STATUS,null,null);
-		return null;
+		String[] tupleStrings = tSpace.get(STATUS,null);
+		
+		//merge with current channels in hashmap
+		mergeChannels(tupleStrings[2]);
+		
+		tSpace.put(STATUS,channelMapToString());
+		
+		return getChannelFromChanelMap();
 	}
 
 	public void writeMessage(String channel, String message) {
@@ -135,4 +142,38 @@ public class ChatServer {
 			return true;
 		}
 	}
+	
+	public String[] getChannelFromChanelMap() {
+		Set<String> set = channels.keySet();
+		if (set.isEmpty()) return null;
+				
+		String[] s = new String[set.size()];
+		int i = 0;
+		for (String ch : channels.keySet()) 
+		{
+			s[i] = ch;
+			i++;
+		}
+		return s;
+	}
+	
+	public void mergeChannels(String channelString){
+		if (channelString.contains(",")) 
+		{
+			String[] items = channelString.split(",");
+			for (String item : items) 
+			{
+				String[] parts = item.split(":");
+				String ch = parts[0];
+				String number = parts[1];
+				
+				if (!channels.containsKey(ch)) {
+					channels.put(ch, number);
+				} 
+			}
+		}	
+		
+		
+	}
+	
 }
