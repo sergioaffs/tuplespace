@@ -57,7 +57,7 @@ public class ChatServer {
 		// TODO: Implement ChatServer(TupleSpace);
 		tSpace = t;
 		
-		String[] tupleStrings = t.get(STATUS,null);
+		String[] tupleStrings = t.read(STATUS,null);
 		channelMapFromString(tupleStrings[1]);
 	}
 
@@ -99,10 +99,11 @@ public class ChatServer {
 		// put number of connections, i.e. listeners left unread, to this position
 		tSpace.put(channel,CHANNEL,tuple[2],Integer.toString(write)); 
 		
-		// update last readable position
+		// update first and last readable position
 		tSpace.get(channel,READ,null,null);
 		tSpace.put(channel,READ,Integer.toString(oldest+1),Integer.toString(write));
 		
+		// update next write position
 		tSpace.put(channel,WRITE,Integer.toString(write+1));
 	}
 
@@ -113,13 +114,18 @@ public class ChatServer {
 		String[] tuple = tSpace.get(channel,WRITE,null);
 		int write = Integer.parseInt(tuple[2]);
 		
-		//find the start read position of channel buffer
+		//find the first read position of channel buffer
 		String rowsString = channels.get(channel);
 		int rows = 0;
 		if (rowsString != null) {
 			rows = Integer.parseInt(rowsString);
 		}
 		int read = write>rows?write-rows:0;
+		
+		/// another possible approach
+		//tuple = tSpace.get(channel,READ,null,null);
+		//int read  = Integer.parseInt(tuple[2]);
+		///
 		
 		// add unread listener to every element in the channel buffer
 		for (int i = read; i < write; i++) {
