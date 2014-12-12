@@ -2,6 +2,10 @@ package chat;
 
 public class ChatListener {
 	// Add stuff here.
+	
+	public ChatListener() {
+		
+	}
 
 	public String getNextMessage() {
 		throw new UnsupportedOperationException();
