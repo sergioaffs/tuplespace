@@ -8,11 +8,10 @@ import javax.print.DocFlavor.READER;
 
 import tuplespaces.TupleSpace;
 
-//STATE: [“STATE”, String:[channel1:number, channel2:number, …, channeln:number,]>]
-//CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position]
+//STATE: [“STATE”, String:[channel1:rows, channel2:rows, …, channeln:rows,]]
+//CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position, String:message]
 //WRITE: [string channel_name, "WRITE", int nextwrite]
 //CONN: [string channel_name, "CONN", int numbers]
-//MESSAGE: [String:channel_name, “MESSAGE”, int:position, String:message]
 //READ: [String:channel_name, “READ”, int firstread, int lastread] //for listeners
 
 
@@ -23,7 +22,6 @@ public class ChatServer {
 	private final String WRITE = "WRITE";
 	private final String CONN = "CONN";
 	private final String STATUS = "STATUS"; 
-	private final String MESSAGE = "MESSAGE";
 	private final String READ = "READ";
 	
 	private final TupleSpace tSpace;
@@ -89,19 +87,18 @@ public class ChatServer {
 		{
 			oldest = write - rows;
 			String old = Integer.toString(oldest);
-			tSpace.get(channel,CHANNEL,"0",old); // wait until the oldest read by all listeners
-			tSpace.get(channel,MESSAGE,old,null); // remove the oldest	
+			// wait until the oldest message read by all listeners and remove it
+			tSpace.get(channel,CHANNEL,"0",old,null);  
+			oldest++;
 		}
-		
-		tSpace.put(channel,MESSAGE,Integer.toString(write),message);
 		
 		tuple = tSpace.read(channel,CONN,null); // get number of connections of this channel
 		// put number of connections, i.e. listeners left unread, to this position
-		tSpace.put(channel,CHANNEL,tuple[2],Integer.toString(write)); 
+		tSpace.put(channel,CHANNEL,tuple[2],Integer.toString(write),message); 
 		
 		// update first and last readable position
 		tSpace.get(channel,READ,null,null);
-		tSpace.put(channel,READ,Integer.toString(oldest+1),Integer.toString(write));
+		tSpace.put(channel,READ,Integer.toString(oldest),Integer.toString(write));
 		
 		// update next write position
 		tSpace.put(channel,WRITE,Integer.toString(write+1));
@@ -115,23 +112,21 @@ public class ChatServer {
 		int write = Integer.parseInt(tuple[2]);
 		
 		//find the first read position of channel buffer
-		String rowsString = channels.get(channel);
-		int rows = 0;
-		if (rowsString != null) {
-			rows = Integer.parseInt(rowsString);
-		}
-		int read = write>rows?write-rows:0;
-		
-		/// another possible approach
-		//tuple = tSpace.get(channel,READ,null,null);
-		//int read  = Integer.parseInt(tuple[2]);
-		///
-		
+//		String rowsString = channels.get(channel);
+//		int rows = 0;
+//		if (rowsString != null) {
+//			rows = Integer.parseInt(rowsString);
+//		}
+//		int read = write>rows?write-rows:0;
+
+		tuple = tSpace.read(channel,READ,null,null);
+		int read  = Integer.parseInt(tuple[2]);
+				
 		// add unread listener to every element in the channel buffer
 		for (int i = read; i < write; i++) {
-			tuple = tSpace.get(channel, CHANNEL, null, Integer.toString(i));
+			tuple = tSpace.get(channel, CHANNEL, null, Integer.toString(i),null);
 			int listeners = Integer.parseInt(tuple[2]);
-			tSpace.put(channel, CHANNEL, Integer.toString(listeners + 1),Integer.toString(i));
+			tSpace.put(channel, CHANNEL, Integer.toString(listeners + 1),Integer.toString(i),tuple[4]);
 		}
 		
 		// update number of connections
@@ -147,9 +142,8 @@ public class ChatServer {
 	
 	public String channelMapToString(){
 		String s = "";
-		Set<String> chs = channels.keySet();
-		for (String ch : chs) {
-			s += ch + ":" + channels.get(ch) + ",";
+		for (String channel : channels.keySet()) {
+			s += channel + ":" + channels.get(channel) + ",";
 		}
 		return s;
 	}
@@ -201,11 +195,11 @@ public class ChatServer {
 			for (String item : items) 
 			{
 				String[] parts = item.split(":");
-				String ch = parts[0];
-				String number = parts[1];
+				String channel = parts[0];
+				String rows = parts[1];
 				
-				if (!channels.containsKey(ch)) {
-					channels.put(ch, number);
+				if (!channels.containsKey(channel)) {
+					channels.put(channel, rows);
 				} 
 			}
 		}	
