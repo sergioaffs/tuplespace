@@ -5,7 +5,7 @@ import java.util.Set;
 
 import tuplespaces.TupleSpace;
 
-//STATE: [“STATE”, int:rows, String:[channel1:number, channel2:number, …, channeln:number]>]
+//STATE: [“STATE”, int:rows, String:[channel1:number, channel2:number, …, channeln:number,]>]
 //CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position]
 //WRITE: [string channel_name, "WRITE", int lastwirte]
 //CONN: [string channel_name, "CONN", int numbers],
@@ -51,17 +51,27 @@ public class ChatServer {
 	}
 
 	public String[] getChannels() {
-		throw new UnsupportedOperationException();
 		// TODO: Implement ChatServer.getChannels();
+		String[] tupleStrings = tSpace.get(STATUS,null,null);
+		return null;
 	}
 
 	public void writeMessage(String channel, String message) {
 		// TODO: Implement ChatServer.writeMessage(String, String);
+		String[] write_position = tSpace.get(channel,WRITE,null);
+		int write = Integer.parseInt(write_position[2]);
+		
+		//check if write is the last element in buffer
+		// wait until the oldest element is read by all listeners
+		int rows = Integer.parseInt( channels.get(channel));
+		tSpace.read(channel,CHANNEL,"0",Integer.toString(write-rows));
 	}
 
 	public ChatListener openConnection(String channel) {
-		throw new UnsupportedOperationException(); // Implement this.
 		// TODO: Implement ChatServer.openConnection(String);
+		String[] write_position = tSpace.get(channel,WRITE,null);
+		
+		return null;
 	}
 	
 	public String channelMapToString(){
