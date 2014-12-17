@@ -1,5 +1,7 @@
 package chat;
 
+import com.sun.corba.se.spi.orb.StringPair;
+
 import tupleserver.TupleServer;
 import tuplespaces.TupleSpace;
 
@@ -55,6 +57,12 @@ public class ChatListener {
 
 	public void closeConnection() {
 		// TODO: Implement ChatListener.closeConnection();
+		String[] tupleStrings = tupleSpace.read(channel,ChatServer.READ,null,null);
+		while (messageCount <= Integer.parseInt(tupleStrings[3]))  //must consume all remaining message
+		{
+			getNextMessage();
+		}
+		
 		String[] connections = tupleSpace.get(channel, ChatServer.CONN, null);
 		int connectionCount = Integer.parseInt(connections[2]);
 		tupleSpace.put(channel, ChatServer.CONN, Integer.toString(connectionCount-1));
