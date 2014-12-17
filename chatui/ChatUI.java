@@ -45,7 +45,9 @@ public class ChatUI extends JFrame {
 		buttons = new JPanel();
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		server = cs;
+		System.out.println("Retrieving channels");
 		String[] channels = server.getChannels();
+		System.out.println("Retrieved channels");
 		channelList = new JList<String>(channels);
 		getContentPane().add(channelList, BorderLayout.CENTER);
 		message = new JTextField();
