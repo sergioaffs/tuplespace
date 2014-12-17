@@ -12,10 +12,12 @@ public class ChatListener {
 	private TupleSpace tupleSpace;
 	private int messageCount = 0;
 	
-	public ChatListener(String channel, TupleSpace tupleSpace, int nextread){
+	public ChatListener(String channel, TupleSpace tupleSpace){
 		this.channel = channel;
 		this.tupleSpace = tupleSpace;
-		this.messageCount = nextread;
+		
+		String[] tuple = this.tupleSpace.read(channel, ChatServer.INFO, null,null,null);
+		this.messageCount = Integer.parseInt(tuple[3]);
 	}
 	
 	public String getNextMessage() 
@@ -38,7 +40,7 @@ public class ChatListener {
 	public void closeConnection() {
 		// TODO: Implement ChatListener.closeConnection();
 		
-		String[] connections = tupleSpace.get(channel, ChatServer.CONN, null,null,null);
+		String[] connections = tupleSpace.get(channel, ChatServer.INFO, null,null,null);
 		while (messageCount <= Integer.parseInt(connections[4]))  //must consume all remaining message
 		{
 			String[] message = tupleSpace.get(channel, ChatServer.CHANNEL, null, Integer.toString(messageCount), null);
@@ -46,6 +48,6 @@ public class ChatListener {
 			messageCount++;
 		}
 		int connectionCount = Integer.parseInt(connections[2]);
-		tupleSpace.put(channel, ChatServer.CONN, Integer.toString(connectionCount-1),connections[3],connections[4]);
+		tupleSpace.put(channel, ChatServer.INFO, Integer.toString(connectionCount-1),connections[3],connections[4]);
 	}
 }

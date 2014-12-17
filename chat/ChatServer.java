@@ -11,7 +11,7 @@ import tuplespaces.TupleSpace;
 //STATE: [“STATE”, String:[channel1:rows, channel2:rows, …, channeln:rows,]]
 //CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position, String:message]
 //WRITE: [string channel_name, "WRITE", int nextwrite]
-//CONN: [string channel_name, "CONN", int numbers, int firstread,int lastread]
+//INFO: [string channel_name, "INFO", int numbers, int firstread,int lastread]
 
 
 public class ChatServer {
@@ -19,7 +19,7 @@ public class ChatServer {
 	
 	public static final String CHANNEL = "CHANNEL";
 	public static final String WRITE = "WRITE";
-	public static final String CONN = "CONN";
+	public static final String INFO = "INFO";
 	public static final String STATUS = "STATUS"; 
 
 	
@@ -37,7 +37,7 @@ public class ChatServer {
 			{
 				// initialize channel tuples
 				tSpace.put(channel,WRITE,"0");
-				tSpace.put(channel,CONN,"0","0","-1");
+				tSpace.put(channel,INFO,"0","0","-1");
 			}
 		}
 		
@@ -85,13 +85,13 @@ public class ChatServer {
 			oldest++;
 		}
 		
-		tuple = tSpace.get(channel,CONN,null,null,null); // get number of connections of this channel
+		tuple = tSpace.get(channel,INFO,null,null,null); // get number of connections of this channel
 		// put number of connections, i.e. listeners left unread, to this position
 		tSpace.put(channel,CHANNEL,tuple[2],Integer.toString(write),message); 
 				
 		// update next write position
 		System.out.println(String.format("PUT: %s, %s, %s", channel,WRITE,Integer.toString(write+1)));
-		tSpace.put(channel,CONN,tuple[2],Integer.toString(oldest),Integer.toString(write));
+		tSpace.put(channel,INFO,tuple[2],Integer.toString(oldest),Integer.toString(write));
 		tSpace.put(channel,WRITE,Integer.toString(write+1));
 	}
 
@@ -102,19 +102,10 @@ public class ChatServer {
 		String[] tuple = tSpace.get(channel,WRITE,null);
 		int write = Integer.parseInt(tuple[2]);
 		
-		//find the first read position of channel buffer
-		String rowsString = channels.get(channel);
-		int rows = 0;
-		if (rowsString != null) {
-			rows = Integer.parseInt(rowsString);
-		}
-		int read = write>rows?write-rows:0;	
-		
-		String[] connStrings = tSpace.read(channel, CONN, null, null, null);
+		//find the first read position of channel buffer		
+		String[] connStrings = tSpace.read(channel, INFO, null, null, null);
 		int readMin = Integer.parseInt(connStrings[3]);
 		int readMax = Integer.parseInt(connStrings[4]);
-		
-		System.out.println("Compare:"+readMin+" "+read+" "+readMax+" "+write);
 				
 		// add unread listener to every element in the channel buffer
 		for (int i = readMin; i < readMax+1; i++) {
@@ -125,14 +116,14 @@ public class ChatServer {
 		
 		
 		// update number of connections
-		tuple = tSpace.get(channel, CONN, null,null,null);
+		tuple = tSpace.get(channel, INFO, null,null,null);
 		int connections = Integer.parseInt(tuple[2]);
-		tSpace.put(channel, CONN, Integer.toString(connections + 1),tuple[3],tuple[4]);
+		tSpace.put(channel, INFO, Integer.toString(connections + 1),tuple[3],tuple[4]);
 		
 		// enable other servers
 		tSpace.put(channel,WRITE,Integer.toString(write));
 		
-		return new ChatListener(channel, tSpace, read);
+		return new ChatListener(channel, tSpace);
 	}
 	
 	public String channelMapToString(){
