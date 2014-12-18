@@ -12,6 +12,7 @@ import tuplespaces.TupleSpace;
 //CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position, String:message]
 //WRITE: [string channel_name, "WRITE", int nextwrite]
 //INFO: [string channel_name, "INFO", int numbers, int firstread,int lastread]
+//LOCK: [string channel_name, "LOCK"]
 
 
 public class ChatServer {
@@ -21,7 +22,8 @@ public class ChatServer {
 	public static final String WRITE = "WRITE";
 	public static final String INFO = "INFO";
 	public static final String STATUS = "STATUS"; 
-
+	public static final String LOCK = "LOCK";
+	
 	
 	private final TupleSpace tSpace;
 	
@@ -38,6 +40,7 @@ public class ChatServer {
 				// initialize channel tuples
 				tSpace.put(channel,WRITE,"0");
 				tSpace.put(channel,INFO,"0","0","-1");
+				tSpace.put(channel,LOCK);
 			}
 		}
 		
@@ -67,7 +70,10 @@ public class ChatServer {
 	public void writeMessage(String channel, String message) {
 		// TODO: Implement ChatServer.writeMessage(String, String);
 		
-		// get the next write position and disable all other servers to write
+		//disable all other servers to write
+		tSpace.get(channel,LOCK);
+		
+		// get the next write position
 		String[] tuple = tSpace.get(channel,WRITE,null);
 		int write = Integer.parseInt(tuple[2]);
 		
@@ -93,14 +99,17 @@ public class ChatServer {
 		System.out.println(String.format("PUT: %s, %s, %s", channel,WRITE,Integer.toString(write+1)));
 		tSpace.put(channel,INFO,tuple[2],Integer.toString(oldest),Integer.toString(write));
 		tSpace.put(channel,WRITE,Integer.toString(write+1));
+		
+		tSpace.put(channel,LOCK);
 	}
 
 	public ChatListener openConnection(String channel) {
 		// TODO: Implement ChatServer.openConnection(String);
 		
-		// get the next write position and disable all other servers to write
-		String[] tuple = tSpace.get(channel,WRITE,null);
-		int write = Integer.parseInt(tuple[2]);
+		// disable all other servers to write
+		tSpace.get(channel,LOCK);
+		
+		String[] tuple;
 		
 		//find the first read position of channel buffer		
 		String[] connStrings = tSpace.read(channel, INFO, null, null, null);
@@ -121,7 +130,7 @@ public class ChatServer {
 		tSpace.put(channel, INFO, Integer.toString(connections + 1),tuple[3],tuple[4]);
 		
 		// enable other servers
-		tSpace.put(channel,WRITE,Integer.toString(write));
+		tSpace.put(channel,LOCK);
 		
 		return new ChatListener(channel, tSpace);
 	}
@@ -161,12 +170,12 @@ public class ChatServer {
 	}
 	
 	public String[] getChannelFromChanelMap() {
-		Set<String> set = channels.keySet();
-		if (set.isEmpty()) return null;
+		Set<String> keySet = channels.keySet();
+		if (keySet.isEmpty()) return null;
 				
-		String[] s = new String[set.size()];
+		String[] s = new String[keySet.size()];
 		int i = 0;
-		for (String ch : channels.keySet()) 
+		for (String ch : keySet) 
 		{
 			s[i] = ch;
 			i++;
