@@ -8,7 +8,7 @@ import javax.print.DocFlavor.READER;
 
 import tuplespaces.TupleSpace;
 
-//STATE: [“STATE”, String:[channel1:rows, channel2:rows, …, channeln:rows,]]
+//STATUS: [“STATUS”, String:[channel1:rows, channel2:rows, …, channeln:rows,]]
 //CHANNEL: [String:channel_name, “CHANNEL”, int:listeners, int:position, String:message]
 //WRITE: [string channel_name, "WRITE", int nextwrite]
 //INFO: [string channel_name, "INFO", int numbers, int firstread,int lastread]
@@ -54,12 +54,12 @@ public class ChatServer {
 
 	public String[] getChannels() {
 		// TODO: Implement ChatServer.getChannels();
-		String[] tupleStrings = tSpace.get(STATUS,null);
+		String[] tupleStrings = tSpace.read(STATUS,null);
 		
 		//merge with current channels in hashmap
 		mergeChannels(tupleStrings[1]);
 		
-		tSpace.put(STATUS,channelMapToString());
+//		tSpace.put(STATUS,channelMapToString());
 		
 		return getChannelFromChanelMap();
 	}
