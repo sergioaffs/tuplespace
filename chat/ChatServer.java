@@ -35,13 +35,7 @@ public class ChatServer {
 		
 		for(String channel:channelNames)
 		{
-			if (addChannel(channel, rows)) 
-			{
-				// initialize channel tuples
-				tSpace.put(channel,WRITE,"0");
-				tSpace.put(channel,INFO,"0","0","-1");
-				tSpace.put(channel,LOCK);
-			}
+			addChannel(channel, rows);
 		}
 		
 		t.put(STATUS,channelMapToString());
@@ -96,7 +90,7 @@ public class ChatServer {
 		tSpace.put(channel,CHANNEL,tuple[2],Integer.toString(write),message); 
 				
 		// update next write position
-		System.out.println(String.format("PUT: %s, %s, %s", channel,WRITE,Integer.toString(write+1)));
+		//System.out.println(String.format("PUT: %s, %s, %s", channel,WRITE,Integer.toString(write+1)));
 		tSpace.put(channel,INFO,tuple[2],Integer.toString(oldest),Integer.toString(write));
 		tSpace.put(channel,WRITE,Integer.toString(write+1));
 		
@@ -156,17 +150,15 @@ public class ChatServer {
 		}	
 	}
 	
-	public boolean addChannel(String ch, int rows) 
+	public void addChannel(String ch, int rows) 
 	{
-		if (channels.containsKey(ch)) 
+		if (!channels.containsKey(ch)) 
 		{
-			//channel already there
-			return false;
-		} else {
-			//add new channels to tuple space
 			channels.put(ch, Integer.toString(rows));
-			return true;
-		}
+			tSpace.put(ch,WRITE,"0");
+			tSpace.put(ch,INFO,"0","0","-1");
+			tSpace.put(ch,LOCK);
+		} 
 	}
 	
 	public String[] getChannelFromChanelMap() {

@@ -24,13 +24,13 @@ public class ChatListener {
 	{
 	
 		String[] message = tupleSpace.get(channel, ChatServer.CHANNEL, null, Integer.toString(messageCount), null);
-		int currentPosition = Integer.parseInt(message[3]);
+		//int currentPosition = Integer.parseInt(message[3]);
 		
 		int remainingReaders = Integer.parseInt(message[2]);
 		
-		System.out.println("Current position: "+currentPosition);
+		//System.out.println("Current position: "+currentPosition);
 
-		System.out.println("Tuple back again");
+		//System.out.println("Tuple back again");
 		tupleSpace.put(channel, ChatServer.CHANNEL, Integer.toString(remainingReaders-1), message[3], message[4]);
 		
 		messageCount++;
