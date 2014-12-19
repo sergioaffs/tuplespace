@@ -86,7 +86,7 @@ The logic of the chat works mostly on a peer to peer basis, in the sense that th
 
 \textbf{Structure:} \verb|("STATUS", String:[channel1:rows, channel2:rows, …, channeln:rows])|
 
-This tuple will be put by the \emph{master} peer (i.e. the first one to connect) and should not be removed. It contains the amount of rows that should be buffered and a series of strings containing the names of the channels.
+This tuple will be put by the \emph{master} peer (i.e. the first one to connect) and should not be removed (implying also no modification). It contains the amount of rows that should be buffered and a series of strings containing the names of the channels.
 
 \subsection{Messages}
 
